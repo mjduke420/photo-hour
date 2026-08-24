@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+dist
+**/dist
+coverage
+**/coverage
+.git
+.github
+e2e
+test-results
+playwright-report
+data
+*.md
+!README.md
+.env
+.env.local

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+coverage/
+*.log
+.env
+.env.local
+.DS_Store
+.vite/
+.cache/
+data/
+test-results/
+playwright-report/
+blob-report/
+.playwright/
