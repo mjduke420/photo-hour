@@ -33,7 +33,7 @@ Built to be self-hosted with Docker. It works out of the box with no API keys.
 docker compose up -d --build
 ```
 
-Then open <http://localhost:8080>.
+Then open <http://localhost:1830>.
 
 To run it on a different port, or to unlock the satellite and topographic
 basemaps, copy `.env.example` to `.env` and set what you need:
@@ -44,11 +44,17 @@ cp .env.example .env
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `PHOTO_HOUR_PORT` | `8080` | Host port published by compose |
+| `PHOTO_HOUR_PORT` | `1830` | Host port published by compose |
 | `MAPTILER_KEY` | empty | Optional. Unlocks satellite and topo basemaps |
 | `DEM_CACHE_MAX_MB` | `2048` | Size cap for the cached elevation tiles |
 | `NOMINATIM_USER_AGENT` | `photo-hour/1.0 (self-hosted)` | Contact string sent to the geocoder |
 | `LOG_LEVEL` | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent` |
+
+Deploying through Portainer instead of the command line? Set these under the
+stack's **Environment variables** rather than in a `.env` file. `PHOTO_HOUR_PORT`
+is the one to reach for if the stack fails with `port is already allocated`:
+only the host side of the mapping changes, so nothing inside the container is
+affected.
 
 `MAPTILER_KEY` is served to the browser, because that is how MapTiler client
 keys work. Use a key restricted to your own origin, and never a secret one. The
