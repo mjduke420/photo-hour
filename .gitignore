@@ -13,3 +13,8 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
+
+# TypeScript incremental build cache. It is written next to tsconfig.json, not
+# inside dist, so the rule above does not cover it. Committing it makes a clean
+# checkout believe the project is already built and skip emitting declarations.
+*.tsbuildinfo
