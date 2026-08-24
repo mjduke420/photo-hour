@@ -17,6 +17,8 @@ services:
       DEM_CACHE_MAX_MB: ${DEM_CACHE_MAX_MB:-2048}
       # Optional. Unlocks the satellite and topo basemaps when set.
       MAPTILER_KEY: ${MAPTILER_KEY:-}
+      # Leave false unless a TLS proxy sits in front; see .env.example.
+      FORCE_HTTPS: ${FORCE_HTTPS:-false}
       NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-photo-hour/1.0 (self-hosted)}
     volumes:
       # Elevation tiles are immutable, so keeping them across restarts makes

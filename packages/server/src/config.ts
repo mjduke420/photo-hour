@@ -4,6 +4,17 @@ import { z } from "zod";
  * Every knob the container exposes. Parsed once at boot so a bad value fails
  * immediately with a clear message rather than surfacing as a runtime error.
  */
+/**
+ * Environment values arrive as strings, and z.coerce.boolean would read the
+ * string "false" as true, so the accepted spellings are listed explicitly.
+ */
+const booleanFromEnv = z
+  .union([z.boolean(), z.string()])
+  .default(false)
+  .transform((value) =>
+    value === true || value === "true" || value === "1" || value === "yes",
+  );
+
 const schema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(8080),
   HOST: z.string().min(1).default("0.0.0.0"),
@@ -30,6 +41,17 @@ const schema = z.object({
 
   /** Directory of built web assets. Empty disables static serving, for tests. */
   STATIC_DIR: z.string().default(""),
+
+  /**
+   * Set this only when the app is actually reachable over HTTPS, typically
+   * behind a TLS reverse proxy.
+   *
+   * It turns on HSTS and the upgrade-insecure-requests policy. Left off, as it
+   * is by default, the app works over plain HTTP on a LAN address. Turned on
+   * without TLS in front, the browser rewrites every asset request to https
+   * and the page fails to load at all.
+   */
+  FORCE_HTTPS: booleanFromEnv,
 });
 
 export type AppConfig = Readonly<z.infer<typeof schema>>;

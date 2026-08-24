@@ -49,6 +49,7 @@ cp .env.example .env
 | `DEM_CACHE_MAX_MB` | `2048` | Size cap for the cached elevation tiles |
 | `NOMINATIM_USER_AGENT` | `photo-hour/1.0 (self-hosted)` | Contact string sent to the geocoder |
 | `LOG_LEVEL` | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent` |
+| `FORCE_HTTPS` | `false` | Enable HSTS and https upgrading. Only set this behind TLS |
 
 Deploying through Portainer instead of the command line? Set these under the
 stack's **Environment variables** rather than in a `.env` file. `PHOTO_HOUR_PORT`

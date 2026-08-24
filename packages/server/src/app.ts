@@ -40,21 +40,35 @@ export async function buildApp(
     bodyLimit: 64 * 1024,
   });
 
+  // useDefaults is off on purpose. Left on, helmet merges its own defaults in,
+  // and those include upgrade-insecure-requests, which makes a browser rewrite
+  // every asset request on a plain-HTTP deployment to https and fail to load
+  // the page. Every directive this app needs is therefore listed in full.
+  const directives: Record<string, string[]> = {
+    defaultSrc: ["'self'"],
+    baseUri: ["'self'"],
+    fontSrc: ["'self'", "data:"],
+    formAction: ["'self'"],
+    frameAncestors: ["'self'"],
+    objectSrc: ["'none'"],
+    scriptSrc: ["'self'"],
+    scriptSrcAttr: ["'none'"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:", "blob:", ...TILE_HOSTS],
+    connectSrc: ["'self'", ...TILE_HOSTS],
+    workerSrc: ["'self'", "blob:"],
+    childSrc: ["'self'", "blob:"],
+  };
+
+  if (config.FORCE_HTTPS) {
+    directives.upgradeInsecureRequests = [];
+  }
+
   await app.register(helmet, {
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        baseUri: ["'self'"],
-        frameAncestors: ["'self'"],
-        objectSrc: ["'none'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", "data:", "blob:", ...TILE_HOSTS],
-        connectSrc: ["'self'", ...TILE_HOSTS],
-        workerSrc: ["'self'", "blob:"],
-        childSrc: ["'self'", "blob:"],
-      },
-    },
+    contentSecurityPolicy: { useDefaults: false, directives },
+    // Announcing HSTS from a plain-HTTP origin is at best ignored and at worst
+    // misleading, so it is only sent when TLS is actually in front.
+    hsts: config.FORCE_HTTPS ? { maxAge: 31536000, includeSubDomains: true } : false,
     crossOriginEmbedderPolicy: false,
   });
 
