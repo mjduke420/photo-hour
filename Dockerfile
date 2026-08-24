@@ -23,13 +23,10 @@ COPY packages/shared/package.json packages/shared/package.json
 COPY packages/server/package.json packages/server/package.json
 COPY packages/web/package.json packages/web/package.json
 
-# The browser bundle is already built, so none of the web dependencies are
-# needed at runtime; only the server and the shared library are installed.
-RUN npm ci --omit=dev \
-      --include-workspace-root \
-      --workspace @photo-hour/server \
-      --workspace @photo-hour/shared \
-    && npm cache clean --force
+# Development tooling is dropped here. Workspace filtering is deliberately not
+# used: npm still resolves every workspace runtime dependency from the lockfile,
+# so passing --workspace would imply a slimming it does not actually perform.
+RUN npm ci --omit=dev && npm cache clean --force
 
 # ---- Final image ---------------------------------------------------------
 FROM node:22-alpine AS runtime
