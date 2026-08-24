@@ -85,7 +85,11 @@ export async function buildApp(
   if (config.STATIC_DIR) {
     const root = path.resolve(config.STATIC_DIR);
     const indexFile = path.join(root, "index.html");
-    await app.register(fastifyStatic, { root, index: false });
+    // Directory requests must resolve to the shell. Disabling the index would
+    // make the site root answer 403 instead of falling through to the handler
+    // below, because a refused directory listing never reaches the not-found
+    // path that serves the single-page app.
+    await app.register(fastifyStatic, { root, index: "index.html" });
 
     // Single-page app: anything that is not an API call and not a real file
     // falls back to the shell so deep links keep working after a refresh.

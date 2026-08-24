@@ -1,0 +1,25 @@
+services:
+  photo-hour:
+    build: .
+    image: photo-hour:latest
+    container_name: photo-hour
+    restart: unless-stopped
+    # Reaps zombies and forwards signals, so the container stops promptly.
+    init: true
+    ports:
+      - "${PHOTO_HOUR_PORT:-8080}:8080"
+    environment:
+      PORT: 8080
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DEM_CACHE_DIR: /data/dem-cache
+      DEM_CACHE_MAX_MB: ${DEM_CACHE_MAX_MB:-2048}
+      # Optional. Unlocks the satellite and topo basemaps when set.
+      MAPTILER_KEY: ${MAPTILER_KEY:-}
+      NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-photo-hour/1.0 (self-hosted)}
+    volumes:
+      # Elevation tiles are immutable, so keeping them across restarts makes
+      # revisiting a location instant and is kinder to the upstream source.
+      - dem-cache:/data/dem-cache
+
+volumes:
+  dem-cache:

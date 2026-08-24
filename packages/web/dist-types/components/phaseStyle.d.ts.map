@@ -1,0 +1,1 @@
+{"version":3,"file":"phaseStyle.d.ts","sourceRoot":"","sources":["../../src/components/phaseStyle.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,oBAAoB,CAAC;AAExD,+DAA+D;AAC/D,eAAO,MAAM,YAAY,EAAE,MAAM,CAAC,aAAa,EAAE,MAAM,CAOtD,CAAC;AAEF,eAAO,MAAM,YAAY,EAAE,MAAM,CAAC,aAAa,EAAE,MAAM,CAOtD,CAAC;AAEF,6DAA6D;AAC7D,eAAO,MAAM,aAAa,EAAE,aAAa,EAMxC,CAAC"}

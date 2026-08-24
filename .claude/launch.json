@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "photo-hour",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["packages/server/dist/index.js"],
+      "port": 8080
+    }
+  ]
+}

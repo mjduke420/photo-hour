@@ -1,4 +1,4 @@
-import { DEG, smoothstep } from "./math.js";
+import { clamp, DEG, smoothstep } from "./math.js";
 import {
   curvatureDropMeters,
   EARTH_CIRCUMFERENCE_M,
@@ -124,17 +124,29 @@ export interface GridHeightFieldSpec {
   maxElevation: number;
 }
 
-/**
- * Wraps a raster elevation grid as a HeightField with bilinear interpolation,
- * matching the smoothing the shader applies when it samples the DEM texture.
- */
-export function createGridHeightField(spec: GridHeightFieldSpec): HeightField {
-  const { heights, width, height, originX, originY, spanX, spanY } = spec;
+/** Rounding slack allowed when deciding whether a point sits on the edge. */
+const EDGE_TOLERANCE = 1e-9;
 
-  const at = (col: number, row: number): number => {
-    const c = col < 0 ? 0 : col > width - 1 ? width - 1 : col;
+export interface BilinearHeightFieldSpec extends Omit<GridHeightFieldSpec, "heights"> {
+  /** Elevation in metres at integer raster coordinates. Never called out of bounds. */
+  read(column: number, row: number): number;
+}
+
+/**
+ * Bilinear elevation lookup over a raster, matching the smoothing the shader
+ * applies when it samples the DEM texture.
+ *
+ * Taking a reader callback rather than a materialised array lets a caller that
+ * already holds packed bytes decode only the four texels a query touches,
+ * without duplicating this interpolation.
+ */
+export function createBilinearHeightField(spec: BilinearHeightFieldSpec): HeightField {
+  const { read, width, height, originX, originY, spanX, spanY } = spec;
+
+  const at = (column: number, row: number): number => {
+    const c = column < 0 ? 0 : column > width - 1 ? width - 1 : column;
     const r = row < 0 ? 0 : row > height - 1 ? height - 1 : row;
-    return heights[r * width + c] ?? 0;
+    return read(c, r);
   };
 
   return {
@@ -142,10 +154,14 @@ export function createGridHeightField(spec: GridHeightFieldSpec): HeightField {
     sample(x: number, y: number): number | null {
       const u = (x - originX) / spanX;
       const v = (y - originY) / spanY;
-      if (u < 0 || u > 1 || v < 0 || v > 1) return null;
+      // The far edge is inside the coverage, but subtracting two nearby
+      // mercator values leaves rounding error, so a point exactly on that edge
+      // can land a hair past 1. Tolerate that instead of reporting no data.
+      if (u < -EDGE_TOLERANCE || u > 1 + EDGE_TOLERANCE) return null;
+      if (v < -EDGE_TOLERANCE || v > 1 + EDGE_TOLERANCE) return null;
 
-      const fx = u * (width - 1);
-      const fy = v * (height - 1);
+      const fx = clamp(u, 0, 1) * (width - 1);
+      const fy = clamp(v, 0, 1) * (height - 1);
       const x0 = Math.floor(fx);
       const y0 = Math.floor(fy);
       const tx = fx - x0;
@@ -156,4 +172,13 @@ export function createGridHeightField(spec: GridHeightFieldSpec): HeightField {
       return top * (1 - ty) + bottom * ty;
     },
   };
+}
+
+/** Bilinear elevation lookup over a decoded elevation grid. */
+export function createGridHeightField(spec: GridHeightFieldSpec): HeightField {
+  const { heights, width } = spec;
+  return createBilinearHeightField({
+    ...spec,
+    read: (column, row) => heights[row * width + column] ?? 0,
+  });
 }

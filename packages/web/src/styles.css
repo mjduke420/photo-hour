@@ -1,0 +1,672 @@
+:root {
+  --ink: #eef2f8;
+  --ink-dim: #9aa6bd;
+  --surface: rgba(14, 18, 30, 0.92);
+  --surface-solid: #0e121e;
+  --edge: rgba(255, 255, 255, 0.12);
+  --accent: #ffb648;
+  --accent-ink: #1a1204;
+  --lit: #ffd27a;
+  --shaded: #6f86b8;
+  --radius: 12px;
+  --shadow-lift: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--surface-solid);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.app {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.map-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+/* Marks the exact point the shadow readout refers to. */
+.crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.crosshair::after {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+}
+
+.topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  pointer-events: none;
+}
+
+.topbar > * {
+  pointer-events: auto;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+}
+
+.brand-mark {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0 50%, #2b3f6d 50% 100%);
+}
+
+.brand-name {
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.panel {
+  position: absolute;
+  top: 68px;
+  right: 16px;
+  z-index: 4;
+  width: 320px;
+  max-height: calc(100% - 200px);
+  overflow-y: auto;
+  padding: 4px 18px 16px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+  backdrop-filter: blur(10px);
+}
+
+.clock {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 14px 0 6px;
+}
+
+.clock-time {
+  font-size: 2.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.clock-zone {
+  color: var(--ink-dim);
+  font-size: 0.85rem;
+}
+
+.panel-section {
+  padding: 14px 0;
+  border-top: 1px solid var(--edge);
+}
+
+.panel-heading {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.muted {
+  color: var(--ink-dim);
+  font-size: 0.82rem;
+  margin: 6px 0 0;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input {
+  flex: 1;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+}
+
+.date-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.ghost-button,
+.chip {
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.ghost-button:hover,
+.chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ghost-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.link-button {
+  padding: 0;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.layer-switcher {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+}
+
+.layer-switcher .chip {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.chip-active {
+  background: var(--accent) !important;
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- Search ---- */
+
+.search {
+  position: relative;
+  width: min(340px, 40vw);
+}
+
+.search form {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.search-message {
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  max-height: 300px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+}
+
+.search-results button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.search-results button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.search-results .muted {
+  margin: 0;
+  font-size: 0.76rem;
+}
+
+/* ---- Sun readout ---- */
+
+.sun-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.compass {
+  width: 92px;
+  height: 92px;
+  flex: none;
+}
+
+.compass-ring {
+  fill: rgba(255, 255, 255, 0.04);
+  stroke: var(--edge);
+}
+
+.compass-tick {
+  stroke: var(--ink-dim);
+}
+
+.compass-label {
+  fill: var(--ink-dim);
+  font-size: 9px;
+}
+
+.compass-ray {
+  stroke: rgba(255, 182, 72, 0.55);
+  stroke-width: 2;
+}
+
+.compass-sun-up {
+  fill: var(--lit);
+}
+
+.compass-sun-down {
+  fill: var(--shaded);
+}
+
+.sun-figures {
+  flex: 1;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.sun-figures div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sun-figures dt {
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+}
+
+.sun-figures dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.86rem;
+}
+
+.event-list {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.event-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+
+.event-time {
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.legend {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 0.74rem;
+  color: var(--ink-dim);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+/* ---- Shadow controls ---- */
+
+.light-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.light-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.light-state-lit .light-dot {
+  background: var(--lit);
+  box-shadow: 0 0 10px rgba(255, 210, 122, 0.8);
+}
+
+.light-state-shaded .light-dot {
+  background: var(--shaded);
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+}
+
+.slider-row input {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.slider-value {
+  font-variant-numeric: tabular-nums;
+  min-width: 34px;
+  text-align: right;
+}
+
+.attribution-note {
+  margin: 16px 0 0;
+  font-size: 0.7rem;
+  color: var(--ink-dim);
+  border-top: 1px solid var(--edge);
+  padding-top: 10px;
+}
+
+/* ---- Time scrubber ---- */
+
+.dock {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.terrain-status {
+  padding: 5px 12px;
+  font-size: 0.76rem;
+  color: var(--ink-dim);
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+}
+
+.scrubber {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 18px 10px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+  backdrop-filter: blur(10px);
+}
+
+.scrubber-play {
+  flex: none;
+  min-width: 74px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.scrubber-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.scrubber-track {
+  position: relative;
+  height: 34px;
+  border-radius: 8px;
+  overflow: visible;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.scrubber-band {
+  position: absolute;
+  top: 0;
+  height: 34px;
+}
+
+.scrubber-band:first-of-type {
+  border-radius: 8px 0 0 8px;
+}
+
+.scrubber-band:last-of-type {
+  border-radius: 0 8px 8px 0;
+}
+
+/* Sunrise, solar noon and sunset, marked on the track itself. */
+.scrubber-event {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+}
+
+.scrubber-handle {
+  position: absolute;
+  top: -5px;
+  width: 3px;
+  height: 44px;
+  margin-left: -1.5px;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.scrubber-readout {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  font-size: 0.78rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--accent-ink);
+  background: #fff;
+  border-radius: 6px;
+}
+
+.scrubber-hours {
+  position: relative;
+  height: 16px;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  color: var(--ink-dim);
+}
+
+.scrubber-hours span {
+  position: absolute;
+  transform: translateX(-50%);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Narrow screens ---- */
+
+@media (max-width: 900px) {
+  .panel {
+    top: auto;
+    bottom: 150px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-height: 45vh;
+  }
+
+  .search {
+    width: auto;
+    flex: 1;
+  }
+
+  .brand-name,
+  .layer-switcher {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- MapLibre control placement ---- */
+
+/* Lift the built-in controls clear of the time dock, and keep them on the
+   left so they never sit underneath the planning panel. */
+.maplibregl-ctrl-bottom-left {
+  bottom: 104px;
+  left: 8px;
+}
+
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl {
+  margin: 0 0 8px;
+}
+
+@media (max-width: 900px) {
+  .maplibregl-ctrl-bottom-left {
+    display: none;
+  }
+}
